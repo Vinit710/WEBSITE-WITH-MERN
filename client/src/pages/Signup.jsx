@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 
 export default function Signup() {
   const [formData, setFromData] = useState({});
+  const[error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
 
 
   const handleChange = (e) => {
@@ -12,14 +16,31 @@ export default function Signup() {
   
   const handleSubmit = async(e) => {
     e.preventDefault();
-    const res = await fetch ('/api/auth/signup',{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-    const data = await res.json();
+    try {
+      setLoading(true);
+      setError(false);
+      const res = await fetch ('/api/auth/signup',{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      console.log(data);
+      setLoading(false);
+      if(data.success === false){
+        setError(true);
+        return;
+      }
+      
+      navigate('/signin');
+    } catch (error) {
+      setLoading(false);
+      setError(true);
+      
+    }
+    
       
   };
   return (
@@ -43,8 +64,10 @@ export default function Signup() {
         rounded-lg' 
         onChange={handleChange}/>
 
-        <button className='bg-slate-700 text-white p-3 
-        rounded-lg uppercase hover:opacity-95 disabled:opacity-80'>Sign Up</button>
+        <button disabled={loading} className='bg-slate-700 text-white p-3 
+        rounded-lg uppercase hover:opacity-95 disabled:opacity-80'>
+          {loading ? 'Loading...': 'Sign UP'}
+          </button>
         
       </form>
       <div className='flex gap-2 mt-5'>
@@ -53,6 +76,7 @@ export default function Signup() {
         <span className='text-blue-500'>Sign in</span>
         </Link>
       </div>
+      <p className='text-red-700 mt-5'>{error && 'Something went wrong'}</p>
     </div>
-  )
+  );
 }
